@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>智慧物流自动化测试平台</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="brand login-brand">
+        <div class="brand-mark">WL</div>
+        <div>
+          <h1>智慧物流测试平台</h1>
+          <p>接口自动化与全链路回归</p>
+        </div>
+      </div>
+      <form id="loginForm" class="login-form">
+        <label>
+          <span>用户名</span>
+          <input id="username" name="username" autocomplete="username" value="admin" required>
+        </label>
+        <label>
+          <span>密码</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" value="123456" required>
+        </label>
+        <button class="primary-button login-button" type="submit">登录平台</button>
+        <p class="login-hint">默认账号：admin / 123456</p>
+      </form>
+    </div>
+  </section>
+
+  <div class="app-shell hidden" id="appShell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">WL</div>
+        <div>
+          <h1>智慧物流测试平台</h1>
+          <p>接口自动化与全链路回归</p>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="主导航">
+        <button class="nav-item active" data-view="overview" title="概览">
+          <span class="nav-icon">⌂</span><span>概览</span>
+        </button>
+        <button class="nav-item" data-view="cases" title="用例">
+          <span class="nav-icon">▣</span><span>用例</span>
+        </button>
+        <button class="nav-item" data-view="mock" title="Mock">
+          <span class="nav-icon">◇</span><span>Mock</span>
+        </button>
+        <button class="nav-item" data-view="ci" title="CI">
+          <span class="nav-icon">↻</span><span>CI/报告</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span id="envText">本地环境</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Smart Logistics QA Console</p>
+          <h2 id="viewTitle">全链路质量概览</h2>
+        </div>
+        <div class="topbar-actions">
+          <span class="user-chip" id="userChip">admin</span>
+          <button class="icon-button" id="refreshBtn" title="刷新数据">↻</button>
+          <button class="primary-button" id="runBtn">执行全链路</button>
+          <button class="secondary-button" id="logoutBtn">退出</button>
+        </div>
+      </header>
+
+      <section class="view active" id="overview">
+        <div class="metrics-grid">
+          <article class="metric">
+            <span>链路节点</span>
+            <strong id="chainNodes">-</strong>
+            <small>订单-调度-执行-结算</small>
+          </article>
+          <article class="metric">
+            <span>Mock 接口</span>
+            <strong id="mockRoutes">-</strong>
+            <small>Flask + JWT 鉴权</small>
+          </article>
+          <article class="metric">
+            <span>用例文件</span>
+            <strong id="caseFiles">-</strong>
+            <small>YAML + Pytest</small>
+          </article>
+          <article class="metric">
+            <span>报告输出</span>
+            <strong id="reportType">-</strong>
+            <small>JUnit XML 可归档</small>
+          </article>
+        </div>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h3>全链路流程</h3>
+            <span class="tag">Logistics Chain</span>
+          </div>
+          <div class="flow" id="flowSteps"></div>
+        </section>
+
+        <div class="split">
+          <section class="panel">
+            <div class="panel-header">
+              <h3>执行日志</h3>
+              <span class="tag muted" id="jobStatus">等待执行</span>
+            </div>
+            <div class="run-log" id="runLog">
+              <p>[ready] 登录成功后可触发智慧物流全链路用例...</p>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h3>质量分布</h3>
+              <span class="tag">API</span>
+            </div>
+            <div class="bar-chart" aria-label="质量分布图">
+              <div style="--h:92%"><span></span><b>通过</b></div>
+              <div style="--h:18%"><span></span><b>失败</b></div>
+              <div style="--h:9%"><span></span><b>跳过</b></div>
+              <div style="--h:64%"><span></span><b>覆盖</b></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="cases">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>用例资产</h3>
+            <button class="secondary-button" data-copy="uv run python run.py all">复制同步并执行命令</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>目录</th>
+                <th>类型</th>
+                <th>文件数</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody id="caseTable"></tbody>
+          </table>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h3>执行命令</h3>
+            <span class="tag">CLI</span>
+          </div>
+          <div class="command-list">
+            <code>uv run python run.py sync</code>
+            <code>uv run python run.py run</code>
+            <code>uv run python -m pytest testcase/Logistics/test_logistics_chain.py -s</code>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="mock">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Mock 服务能力</h3>
+            <span class="tag">Flask</span>
+          </div>
+          <div class="endpoint-grid" id="endpointGrid"></div>
+        </section>
+      </section>
+
+      <section class="view" id="ci">
+        <div class="split">
+          <section class="panel">
+            <div class="panel-header">
+              <h3>Jenkins</h3>
+              <span class="tag">Pipeline</span>
+            </div>
+            <dl class="kv" id="ciInfo"></dl>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h3>报告入口</h3>
+              <span class="tag">Allure</span>
+            </div>
+            <div class="report-links">
+              <a href="../report/results.xml">JUnit XML</a>
+              <a href="../report/temp/">Allure 结果目录</a>
+              <a href="../logs/">运行日志</a>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>

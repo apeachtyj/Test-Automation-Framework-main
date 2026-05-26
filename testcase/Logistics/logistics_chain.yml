@@ -1,0 +1,206 @@
+- baseInfo:
+    description: Smart logistics full-chain scenario
+    api_name: Create order plan
+    url: /api/order/customer/orderPlan/create
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Customer creates transport order
+      json:
+        orderInfo:
+          template: standard
+          urgentType: 1
+          cusName: test_customer
+          orderType: 1
+          charter: 1
+          planType: 1
+          transStartTime: ${start_time()}
+          transEndTime: ${end_time()}
+          cusId: 10001
+        orderCapacityList:
+          - materialCategoryId: "1676511586856882178"
+            itemNum: 10
+            weight: 100
+      validation:
+        - eq: { 'code': 20000 }
+      extract:
+        orderNo: $.orderNo
+- baseInfo:
+    api_name: Master receives order
+    url: /api/order/pc/order/master/receive
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Master dispatch center receives order
+      json:
+        orderId: ${get_extract_data(orderNo)}
+      validation:
+        - eq: { 'code': 20000 }
+- baseInfo:
+    api_name: Assign carrier
+    url: /api/order/pc/order/assign
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Assign logistics company
+      json:
+        orderId: ${get_extract_data(orderNo)}
+        orgId: "4140913758110176843"
+      validation:
+        - eq: { 'code': 20000 }
+- baseInfo:
+    api_name: Carrier receives order
+    url: /api/order/pc/order/trans/receive
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Logistics company receives order
+      json:
+        orderId: ${get_extract_data(orderNo)}
+      validation:
+        - eq: { 'code': 20000 }
+      extract:
+        logisticsOrderId: $.data.logistics_id
+- baseInfo:
+    api_name: Split logistics order
+    url: /api/order/pc/logisticsOrder/handSplitOrder
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Split logistics order by capacity
+      json:
+        logisticsOrderId: ${get_extract_data(logisticsOrderId)}
+        list:
+          - itemNum: 10
+            splitNum: 10
+      validation:
+        - eq: { 'code': 20000 }
+- baseInfo:
+    api_name: Dispatch vehicle
+    url: /api/order/pc/logisticsOrder/handCapacityDispatch
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Dispatch vehicle for logistics order
+      json:
+        - logisticsOrderId: ${get_extract_data(logisticsOrderId)}
+          carrierId: "1661558222301904898"
+          driverName: test_driver
+          driverTel: "15810108888"
+          vehicleNo: ${vehicle_random()}
+      validation:
+        - eq: { 'code': 20000 }
+      extract:
+        scheduleNo: $.scheduleNo
+- baseInfo:
+    api_name: Query schedule list
+    url: /api/order/pc/schedule/findPage
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Query schedule order by schedule number
+      json:
+        dataValue: ${get_extract_data(scheduleNo)}
+        dataType: "scheduleNo"
+        scheduleMapStatus: 1
+        current: 1
+        size: 10
+      validation:
+        - eq: { 'code': 20000 }
+      extract:
+        scheduleId: $.data.records[0].id
+- baseInfo:
+    api_name: Driver confirms transport
+    url: /api/order/app/schedule/confirm
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Driver confirms schedule
+      json:
+        scheduleNo: ${get_extract_data(scheduleNo)}
+      validation:
+        - eq: { 'code': 20000 }
+- baseInfo:
+    api_name: Inventory outbound callback
+    url: /rpc/srm/inventory
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Warehouse pushes outbound result
+      json:
+        scheduleNo: ${get_extract_data(scheduleNo)}
+        actionTime: ${end_time()}
+        boxSpec: "20GP"
+        containerNo: "CONT0001"
+        vehicleNo: ${vehicle_random()}
+        wareHouseName: test_warehouse
+        wareHouseAddr: test_address
+        weightNo: "WT000001"
+        materialList:
+          - materialCategoryId: "1676511586856882178"
+            outboundNum: 10
+      validation:
+        - eq: { 'code': 20000 }
+      extract:
+        weightNo: $.data.weightNo
+- baseInfo:
+    api_name: Measurement return
+    url: /order/feign/dbjlxt
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Measurement system returns execution result
+      json:
+        exceptOther: 10.0
+        spareNum1: 12.0
+        productNet: 100.0
+        weightNo: ${get_extract_data(weightNo)}
+        product: test_material
+        status: 1
+        dataStatus: 1
+      validation:
+        - eq: { 'code': 20000 }
+- baseInfo:
+    api_name: Create settlement bill
+    url: /api/order/pc/cost/receiveCost/create/bill
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Create freight settlement bill
+      json:
+        billName: auto_bill
+        dataType: "scheduleNo"
+        costBillStatus: 1
+        dataValue: ${get_extract_data(scheduleNo)}
+        ids:
+          - ${get_extract_data(scheduleId)}
+      validation:
+        - eq: { 'code': 20000 }
+      extract:
+        reconciliationNum: $.reconciliationNum
+- baseInfo:
+    api_name: Query payable cost
+    url: /api/order/pc/cost/payCost/page
+    method: post
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: Query payable freight settlement page
+      json:
+        costBillId: ${get_extract_data(reconciliationNum)}
+        dataType: "scheduleNo"
+        current: 1
+        size: 10
+      validation:
+        - eq: { 'code': 20000 }

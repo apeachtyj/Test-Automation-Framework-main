@@ -1,0 +1,14 @@
+
+*.pyc
+/common/__pycache__
+/.idea
+*.pyc
+/report/temp
+.venv/
+mock_server/api_server/.venv/
+.pytest_cache/
+__pycache__/
+logs/
+report/
+extract.yaml
+frontend/server.*.log

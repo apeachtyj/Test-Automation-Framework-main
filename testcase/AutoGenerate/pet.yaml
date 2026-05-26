@@ -1,0 +1,18 @@
+- baseInfo:
+    api_name: Update an existing pet
+    url: https://petstore.swagger.io/v2/pet
+    method: PUT
+    header:
+      Content-Type: application/json;charset=UTF-8
+      token: ${get_extract_data(token)}
+  testCase:
+  - case_name: 自动生成：Update an existing pet_正常场景
+    json:
+      body: auto_string
+#    validation:
+#    - eq:
+#        error_code: '0000'
+    validation:
+      - eq: { 'status_code': 200 }  # 改成校验 HTTP 状态码为 200
+    extract:
+      auto_id: $.data.id
