@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     triggers {
         pollSCM('H/2 * * * *')
     }
@@ -15,7 +19,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                retry(3) {
+                    checkout scm
+                }
             }
         }
 
@@ -66,9 +72,15 @@ pipeline {
 
     post {
         always {
-            junit allowEmptyResults: true, testResults: 'report/results.xml'
-            allure includeProperties: false, jdk: '', results: [[path: 'report/temp']]
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/**, report/**'
+            script {
+                if (fileExists('report/results.xml')) {
+                    junit allowEmptyResults: true, testResults: 'report/results.xml'
+                }
+                if (fileExists('report/temp')) {
+                    allure includeProperties: false, jdk: '', results: [[path: 'report/temp']]
+                }
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/**, report/**'
+            }
         }
     }
 }
