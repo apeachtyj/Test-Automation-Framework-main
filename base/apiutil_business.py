@@ -9,6 +9,7 @@ import allure
 import json
 import jsonpath
 import re
+import ast
 import traceback
 from json.decoder import JSONDecodeError
 
@@ -63,6 +64,16 @@ class RequestBase(object):
             data = str_data
         return data
 
+    @staticmethod
+    def parse_validation(validation):
+        if validation is None:
+            return []
+        if isinstance(validation, list):
+            return validation
+        if isinstance(validation, str):
+            return ast.literal_eval(validation)
+        raise TypeError(f"Unsupported validation type: {type(validation).__name__}")
+
     def specification_yaml(self, case_info):
         """
         规范yaml测试用例的写法
@@ -105,7 +116,7 @@ class RequestBase(object):
                 val = self.replace_load(tc.get('validation'))
                 tc['validation'] = val
                 # 字符串形式的列表转换为list类型
-                validation = eval(tc.pop('validation'))
+                validation = self.parse_validation(tc.pop('validation'))
                 allure_validation = str([str(list(i.values())) for i in validation])
                 allure.attach(allure_validation, "预期结果", allure.attachment_type.TEXT)
                 extract = tc.pop('extract', None)

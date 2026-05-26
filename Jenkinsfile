@@ -77,7 +77,11 @@ pipeline {
                     junit allowEmptyResults: true, testResults: 'report/results.xml'
                 }
                 if (fileExists('report/temp')) {
-                    allure includeProperties: false, jdk: '', results: [[path: 'report/temp']]
+                    try {
+                        allure includeProperties: false, jdk: '', results: [[path: 'report/temp']]
+                    } catch (err) {
+                        echo "Allure publish skipped: ${err}"
+                    }
                 }
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/**, report/**'
             }

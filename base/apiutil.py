@@ -1,5 +1,6 @@
 import json
 import re
+import ast
 from json.decoder import JSONDecodeError
 
 import allure
@@ -53,6 +54,16 @@ class RequestBase:
             data = str_data
         return data
 
+    @staticmethod
+    def parse_validation(validation):
+        if validation is None:
+            return []
+        if isinstance(validation, list):
+            return validation
+        if isinstance(validation, str):
+            return ast.literal_eval(validation)
+        raise TypeError(f"Unsupported validation type: {type(validation).__name__}")
+
     def specification_yaml(self, base_info, test_case):
         """
         接口请求处理基本方法
@@ -84,7 +95,7 @@ class RequestBase:
             # 处理断言
             val = self.replace_load(test_case.get('validation'))
             test_case['validation'] = val
-            validation = eval(test_case.pop('validation'))
+            validation = self.parse_validation(test_case.pop('validation'))
             # 处理参数提取
             extract = test_case.pop('extract', None)
             extract_list = test_case.pop('extract_list', None)
